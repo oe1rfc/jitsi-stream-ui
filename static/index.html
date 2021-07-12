@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Jitsi Control</title>
+
+    <!-- Bootstrap core CSS -->
+    <script src="libs/jquery-3.6.0.min.js"></script>
+    <script src="libs/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
+    <link href="libs/bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="libs/fontawesome/css/all.min.css" rel="stylesheet" />
+
+    <meta name="theme-color" content="#563d7c">
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+      h3.masthead-brand {
+          position: fixed;
+          display: block;
+      }
+    </style>
+    <!-- Custom styles for this template 
+<link href="{{ url_for('static', filename='css/cover.css') }}" rel="stylesheet" />
+
+<script src="{{ url_for('static', filename='dist/vue.js/vue.min.js') }}"></script>
+<script src="{{ url_for('static', filename='dist/socket.io/socket.io.js') }}"></script>
+<script src="https://{{ jitsi_domain }}/external_api.js"></script>
+-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@3.1.0/dist/socket.io.min.js"></script>
+
+    <script src="/libs/lib-jitsi-meet.min.js"></script>
+    <script src="/config.js"></script>
+    <script src="config.js"></script>
+
+<style>
+  .controls-side {
+    padding-top: 15px;
+  }
+  .controlpanel {
+    margin-bottom: 15px;
+    box-shadow: 0 0 0.5rem rgba(0, 0, 0, .2);
+    background: #f7f7f7;
+  }
+  .mixerinputs .btn-group button {
+    box-shadow: 0 0 0.5rem rgba(255, 255, 255, .2) inset;
+    padding: .5rem 0;
+    flex: 1 1 auto;
+  }
+  .mixerinputs .btn-group {
+    flex: 1 1 auto;
+  }
+  .mixerinputs .btn-group .dropdown-item {
+    padding: .1rem .5rem;
+    font-weight: 350;
+    font-size: 85%;
+  }
+  .mixerinputs .btn-group .dropdown-menu {
+    min-width: 95%;
+    padding: 0 0;
+  }
+  .custom-control-input:checked~.custom-control-label::before {
+    border-color: #dc3545;
+    background-color: #dc3545;
+  }
+  .mixer button {
+    box-shadow: 0 0 1rem rgba(100, 100, 100, .25) inset !important;
+  }
+
+  .jitsi-participants i.participant-visible.fas.fa-eye {
+    color: lightgreen !important;
+  }
+  .jitsi-participants i.participant-visible.fas:not(.fa-eye) {
+    color: orangered !important;
+  }
+
+  .video-container {
+/*    height: 607px;
+    width: 1080px; */
+    height: 607px;
+    width: 30%;
+    background-color: rgba(0,0,0,0.33);
+    position: fixed;
+    top: 4rem;
+  }
+
+  .regie-container {
+    top: 4rem;
+    right: 2rem;
+    position: absolute;
+  }
+
+</style>
+  </head>
+  <body>
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+  <header class="">
+    <div class="inner">
+      <h3 class="masthead-brand">Jitsi Control</h3>
+    </div>
+  </header>
+
+  <main role="main" class="inner cover">
+
+<main role="main" class="container-fluid">
+  <div class="row">
+    <div class="col-md-7 video-main">
+      <div class="video-container" id="video-container">
+      </div><!-- /.video-container -->
+    </div><!-- /.video-main -->
+
+    <aside id="regie-container" class="col-md-6 controls-side regie-container">
+        <div class="p-2">
+          <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="enableControlSwitch" v-model="remote_control">
+            <label class="custom-control-label" for="enableControlSwitch">Enable Control</label>
+          </div>
+        </div>
+        <div class="p-2" v-show="remote_control == false">
+          <div class="alert alert-info" role="alert">
+            Remote Control disabled.
+          </div>
+        </div>
+      <jitsi-client v-for="j in jitsi_sorted" v-bind:jitsi="j" v-on:jitsi-event="jitsiEvent" v-bind:key="j.id"></jitsi-client>
+    </aside>
+  </div>
+</main>
+
+<script src="js/control-jitsi-player.js"></script>
+<script>
+$(document).ready(function() {
+
+if (location.hash == '') {
+    // generate random client ID
+    location.hash = "#control=" + Math.random().toString(16).substr(2, 8);
+}
+var parameters = location.hash.replace('#', '').split('&').reduce((prev, item) => {
+    var kv = item.split('='); return Object.assign({[kv[0]]: kv[1]}, prev); }, {});
+
+
+var socket = io(streamui_config.namespace, {path: streamui_config.path});
+
+socket.on('connect', function() {
+    socket.emit('register', {type: 'user', room: parameters.control});
+});
+
+window.regie = new Vue({
+    el: '#regie-container',
+    data: {
+        remote_control: true,
+        jitsi_participants: null,
+        JitsiClients: {},
+        atem: {
+            inputs: { },
+/*
+                '1': { id: 1, longName: "DEBUG1"},
+                '2': { id: 2, longName: "HDMI2"},
+                '3': { id: 3, longName: "HDMI3"},
+                '4': { id: 4, longName: "HDMI4"},
+                '5': { id: 5, longName: "SDI1"},
+                '6': { id: 6, longName: "SDI2"},
+                '7': { id: 7, longName: "SDI3"},
+                '8': { id: 8, longName: "DEBUG8"},
+                '2000': { id: 2000, longName: "MP1"},
+                '2001': { id: 2001, longName: "MP2"},
+            },*/
+            state: { program: 5, preview: 1, inTransition: false},
+            audio: {
+                master: {gain: 0 },
+                channels: {}
+/*
+                    '1': { id: 1, state: 'on', gain: 0, type: 'HDMI'},
+                    '2': { id: 2, state: 'afv', gain: 0, type: 'HDMI'},
+                    '3': { id: 3, state: 'off', gain: 0, type: 'HDMI'},
+                    '4': { id: 4, state: 'off', gain: 0, type: 'HDMI'},
+                    '5': { id: 5, state: 'afv', gain: 0, type: 'SDI'},
+                    '6': { id: 6, state: 'off', gain: 0, type: 'SDI'},
+                    '7': { id: 7, state: 'off', gain: 0, type: 'SDI'},
+                    '8': { id: 8, state: 'off', gain: 0, type: 'SDI'},
+                    '1001': { id: 1001, state: 'on', gain: 0, type: 'XLR'},
+                } */
+            }
+        },
+        jitsi: {
+            demo: {
+                id: "00demo",
+                status: "disconnected",
+                room: null,
+                participants: [
+                    {
+                        "id": "foobar_id",
+                        "order": 0,
+                        "connection": "active",
+                        "hidden": false,
+                        "role": "moderator",
+                        'displayName': 'Django Müller',
+                        "tracks": [
+                            {
+                                "type": "audio",
+                                "muted": false,
+                                "audioLevel": -1,
+                                "videoType": "camera"
+                            },
+                            {
+                                "type": "video",
+                                "muted": false,
+                                "audioLevel": -1,
+                                "videoType": "camera"
+                            }
+                        ],
+                        "options": {
+                            "visible": true,
+                            "frame": false,
+                            "name_override": null,
+                            "fullscreen": false,
+                            "picture_url": null,
+                            "video_muted": false,
+                            "audio_muted": true,
+                            "audio_volume": -40
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    computed: {
+        jitsi_sorted: function () {
+            return Object.values(this.jitsi).sort(function (a, b) {
+                return (a.id).localeCompare(b.id);
+            });
+        }
+    },
+    watch: {},
+    methods: {
+        atemEvent: function(eventname, data) {
+            if(this.remote_control == true) {
+              console.log('main atemEvent', eventname, data);
+              socket.emit('room', {command: eventname, id: 'atem', data: data});
+            } else {
+              alert("control not enabled.");
+            }
+        },
+        jitsiEvent: function(id, eventname, data) {
+            if(this.remote_control == true) {
+              console.log('main jitsiEvent', id, eventname, data);
+              socket.emit('room', {command: eventname, id: id, data: data});
+            } else {
+              alert("control not enabled.");
+            }
+        }
+    }
+})
+
+socket.on('room', function(msg, cb) {
+    if (cb) cb();
+    if ( ! msg.type )
+        return;
+    switch (msg.type) {
+        case 'jitsi':
+            Vue.set(regie.jitsi, msg.source, msg.data);
+            break;
+        case 'atem':
+            Vue.set(regie, 'atem', msg.data);
+            break;
+        case 'disconnect':
+            if (true){//msg.source in Object.keys(regie.jitsi)){
+                Vue.delete(regie.jitsi, msg.source);
+            }
+            break;
+    }
+    console.log('Received room message: ', msg);
+});
+
+socket.on('register', function(status, cb) {
+    console.log('registered status:' + status);
+    socket.emit('room', {command: 'discover'});
+    if (cb) cb();
+});
+
+});
+</script>
+  </main>
+</div>
+</body>
+</html>
