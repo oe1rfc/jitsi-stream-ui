@@ -54,9 +54,9 @@ Vue.component('jitsi-client', {
       }
     },
     UIdisconnect: function() {
-      var confirm = prompt('please enter the word \'DISCONNECT\':');
-      if (confirm === "DISCONNECT") {
-        this.$emit('jitsi-event', this.jitsi.id, 'disconnect', {} );
+      var confirm = prompt('please enter the word \'LEAVE\':');
+      if (confirm === "LEAVE") {
+        this.$emit('jitsi-event', this.jitsi.id, 'leave', {} );
       }
     }
   },
@@ -68,7 +68,6 @@ Vue.component('jitsi-client', {
               status: {{ jitsi.status }}, room: {{ jitsi.room || 'none' }}
             <div class="float-right">
               <button type="button" class="btn btn-sm btn-success" v-show="jitsi.room == null" data-bs-toggle="modal" :data-bs-target="'#joinModal'+jitsi.id">Join Room</button>
-              <button type="button" class="btn btn-sm btn-success" v-show="jitsi.room == null" v-on:click="UIjoin">Connect <i class="fas fa-grip-horizontal"></i></button>
               <button type="button" class="btn btn-sm btn-danger" v-show="jitsi.room != null" v-on:click="UIdisconnect">Disconnect <i class="fas fa-grip-horizontal"></i></button>
             </div>
           </h5>

@@ -520,8 +520,8 @@ class StreamUI {
             console.log('joining room:', d.room);
             self.jitsi.join(d.room, d.password || null);
         });
-        this.command('disconnect', function(d) {
-            console.log('disconnect', d);
+        this.command('leave', function(d) {
+            console.log('leave', d);
             self.jitsi.leave();
         });
         this.command('setParticipantOrders', function(d) {
