@@ -50,3 +50,16 @@ io.on('connection', socket => {
 
 const port = process.env.PORT || 3000
 server.listen(port, () => console.log('Server is running on port '+port))
+
+var signals = {
+  'SIGHUP': 1,
+  'SIGINT': 2,
+  'SIGTERM': 15
+};
+
+Object.keys(signals).forEach((signal) => {
+  process.on(signal, () => {
+    io.close();
+    server.close();
+  });
+});
