@@ -1,11 +1,20 @@
 Vue.component('jitsi-client', {
   props: ['jitsi'],
+      data: function() {
+        return {
+            join_room_name: "",
+            join_room_password: "",
+        }
+  },
   computed: {
       participants_sorted: function () {
           return Object.values(this.jitsi.participants).sort(function (a, b) {
               return a.order - b.order;
           });
-      }
+      },
+      input_roomname_invalid: function () {
+        return !( this.join_room_name && this.join_room_name.length > 0);
+      },
   },
   methods: {
     updateParticipantOptions: function(participant, options) {
@@ -35,11 +44,13 @@ Vue.component('jitsi-client', {
       var displayName = e.target.innerText;
       this.$emit('jitsi-event', this.jitsi.id, 'setDisplayName', { displayName: displayName });
     },
-    UIconnect: function() {
-      var room = prompt('Jitsi Room Name:');
-      if ( room != null && room != "" ) {
-        console.log('connect', room, this);
-        this.$emit('jitsi-event', this.jitsi.id, 'connect', { 'room': room } );
+    UIjoin: function() {
+      if (!this.input_roomname_invalid) {
+        var room = this.join_room_name;
+        var password = this.join_room_password;
+        if (password.length == 0) { password = null; }
+        console.log('join', room, password, this);
+        this.$emit('jitsi-event', this.jitsi.id, 'join', { 'room': room, 'password': password } );
       }
     },
     UIdisconnect: function() {
@@ -56,13 +67,11 @@ Vue.component('jitsi-client', {
               ({{ jitsi.id }}), 
               status: {{ jitsi.status }}, room: {{ jitsi.room || 'none' }}
             <div class="float-right">
-              <button type="button" class="btn btn-sm btn-success" v-show="jitsi.room == null" v-on:click="UIconnect">Connect <i class="fas fa-grip-horizontal"></i></button>
+              <button type="button" class="btn btn-sm btn-success" v-show="jitsi.room == null" data-bs-toggle="modal" :data-bs-target="'#joinModal'+jitsi.id">Join Room</button>
+              <button type="button" class="btn btn-sm btn-success" v-show="jitsi.room == null" v-on:click="UIjoin">Connect <i class="fas fa-grip-horizontal"></i></button>
               <button type="button" class="btn btn-sm btn-danger" v-show="jitsi.room != null" v-on:click="UIdisconnect">Disconnect <i class="fas fa-grip-horizontal"></i></button>
             </div>
           </h5>
-<!--            <button type="button" class="btn btn-secondary">Cut to this cam</button>
-            <button type="button" class="btn btn-secondary">Fade to this cam</button> -->
-
             <table class="table table-striped small jitsi-participants">
                 <tbody>
                     <tr>
@@ -111,9 +120,34 @@ Vue.component('jitsi-client', {
                     </tr>
                 </tbody>
             </table>
-          <div role="group" aria-label="cut-action">
-            <button type="button" class="btn btn-sm btn-secondary" v-show="jitsi.status == 'connected'" v-on:click="$emit('jitsi-event', jitsi.id, 'toggleTileView', {})">Toggle Tile View <i class="fas fa-grip-horizontal"></i></button>
-          </div>
+            <div role="group" aria-label="cut-action">
+                <button type="button" class="btn btn-sm btn-secondary" v-show="jitsi.status == 'connected'" v-on:click="$emit('jitsi-event', jitsi.id, 'toggleTileView', {})">Toggle Tile View <i class="fas fa-grip-horizontal"></i></button>
+            </div>
+            <!-- Join Modal -->
+            <div class="modal fade" :id="'joinModal'+jitsi.id" tabindex="-1" aria-labelledby="joinModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Connect {{ jitsi.displayName }} <small>({{ jitsi.id }})</small> to a room</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="input_roomname" class="form-label">Room:</label>
+                                    <input type="text" class="form-control" v-model="join_room_name" >
+                                </div>
+                                <div class="mb-3">
+                                    <label for="input_roompassword" class="form-label">Password: <small>(optional)</small></label>
+                                    <input type="text" class="form-control" v-model="join_room_password" >
+                                </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" v-on:click="UIjoin" data-bs-dismiss="modal" v-bind:disabled="input_roomname_invalid">Join Room</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
   `
 });

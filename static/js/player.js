@@ -516,7 +516,7 @@ class StreamUI {
         this.command('discover', function(d) {
             self.send_update();
         });
-        this.command('connect', function(d) {
+        this.command('join', function(d) {
             console.log('joining room:', d.room);
             self.jitsi.join(d.room, d.password || null);
         });
