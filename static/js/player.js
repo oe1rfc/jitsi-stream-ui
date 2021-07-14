@@ -41,7 +41,7 @@ Vue.component('participant', {
     data: function() {
         return {
             dominant_speaker: false,
-            attached: false,        // if tracks should be attached and requested
+            active: false,        // if tracks should be requested
             options: {
                 visible: false,     // TESTING
                 frame: false,
@@ -56,18 +56,20 @@ Vue.component('participant', {
     },
     created: function () {
         console.warn("participant component created", this);
-        this.attached = this.options.visible;
+        this.active = this.options.visible;
+        this.attachTracks();
         this.$parent.participant_created(this.id, this);
     },
     beforeDestroy: function () {
-        if (this.attached == true) {
-            this.updateTracks(false);
+        // detach tracks
+        for (var track of this.participant.getTracks()) {
+            this.cleanupTracks(track);
         }
         this.$parent.participant_destroyed(this.id);
     },
     methods: {
-        track_cleanup: function(track) {
-            track.detach($(`#${track.getTrackId()}`)[0]);
+        cleanupTracks: function(track) {
+            track.detach();
         },
         updateOptions: function(options) {
             console.warn("update participant Options:", options);
@@ -79,23 +81,18 @@ Vue.component('participant', {
             this.$set(this.options, 'visible', value);
             this.$set(this.options, 'fullscreen', value);
         },
-        updateTracks: function(attach) {
-            console.warn(`updateTracks ${this.id}`, attach);
-            if(attach == true) {
-                // attach all tracks to their elements
+        attachTracks: function() {
+            console.warn(`attachTracks ${this.id}`);
+            // attach all tracks to their elements
                 this.$nextTick(function () {
-                    for (var n in this.tracks) {
-                        var e = $(`#${this.tracks[n].getTrackId()}`)[0];
-                        this.tracks[n].attach(e);
+                    for (var track of this.participant.getTracks()) {
+                        var e = $(`#${track.getTrackId()}`)[0];
+                        if (track.containers.indexOf(e) < 0) {
+                            track.attach(e);
+                        }
                     }
                     this.updateAudio();
                 });
-            } else {
-                // detach all tracks
-                for (var n in this.tracks) {
-                    this.track_cleanup(n);
-                }
-            }
         },
         updateAudio: function() {
             for (var n in this.tracks) {
@@ -147,24 +144,26 @@ Vue.component('participant', {
             console.warn(`track watch changed: ${oldkeys.length} => ${newkeys.length}`);
         },
         'options.visible': function(visible) {
-            if (visible == true && this.attached == false)
-                this.attached = true;
+            if (visible == true && this.active == false)
+                this.active = true;
             // reset fullscreen
             if (visible == false && this.options.fullscreen == true)
                 this.options.fullscreen = false;
         },
         'options.fullscreen': function(val, oldVal) {},
         'options.audio_muted': function(muted, oldVal) {
-            if (muted == false && this.attached == false)
-                this.attached = true;
+            if (muted == false && this.active == false)
+                this.active = true;
             this.updateAudio();
         },
         'options.audio_volume': function(val, oldVal) {
             this.updateAudio();
         },
-        attached: function(val) {
+        tracks: function(val) {
+            this.attachTracks();
+        },
+        active: function(val) {
             this.$parent.jitsiUpdateReceiverConstraints();
-            this.updateTracks(val);
         },
     },
     computed: {
@@ -293,8 +292,11 @@ var JitsiUI = new Vue({
             this.status = 'joined';
         },
         jitsiUserJoined: function(id) {
-            console.warn('user joined', id, this);
             var participant = this.room.getParticipantById(id);
+            if (participant.isHidden()) {
+                console.warn('ignoring hidden user', id);
+            }
+            console.warn('user joined', id, this);
             this.$set(this.jisti_participants, id, {
                 order: this.order_count++,
                 participant: participant,
@@ -303,24 +305,30 @@ var JitsiUI = new Vue({
             });
         },
         jitsiUserLeft: function(id) {
-            console.warn('user left', id, this);
-            Vue.delete( this.jisti_participants, id );
+            console.warn('user left', id);
+            if (id in this.jisti_participants) {
+                Vue.delete(this.jisti_participants, id );
+            }
         },
         jitsiTrackAdded: function(track) {
             console.warn('track added', track, this);
             if (track.isLocal()) { return; }
             var pid = track.getParticipantId();
-            this.$set(this.jisti_participants[pid].tracks, track.getId(), track);
-            this.jitsiParticipantUpdateMuted(pid);
+            if (pid in this.jisti_participants) {
+                this.$set(this.jisti_participants[pid].tracks, track.getId(), track);
+                this.jitsiParticipantUpdateMuted(pid);
+            }
         },
         jitsiTrackRemoved: function(track) {
             console.warn('track removed', track, this);
             if (track.isLocal()) { return; }
             var pid = track.getParticipantId();
-            this.participants[pid].track_cleanup(track);
-            Vue.delete(this.jisti_participants[pid].tracks, track.getId() );
-            // delete this.jisti_participants[pid].tracks[track.getId()]; // TODO this probably needs cleanup
-            this.jitsiParticipantUpdateMuted(pid);
+            if (pid in this.jisti_participants) {
+                this.participants[pid].cleanupTracks(track);
+                Vue.delete(this.jisti_participants[pid].tracks, track.getId() );
+                // delete this.jisti_participants[pid].tracks[track.getId()]; // TODO this probably needs cleanup
+                this.jitsiParticipantUpdateMuted(pid);
+            }
         },
         jitsiTrackMuteChanged: function(track) {
             console.warn(`track muted: ${track.getType()} - ${track.isMuted()}`);
@@ -329,13 +337,15 @@ var JitsiUI = new Vue({
         },
         jitsiParticipantUpdateMuted: function(pid) {
             var muted = { video: null, audio: null };
-            for (var n in this.jisti_participants[pid].tracks) {
-                var track = this.jisti_participants[pid].tracks[n];
-                if (muted[track.getType()] != true) {
-                    muted[track.getType()] = track.isMuted();
+            if (pid in this.jisti_participants) {
+                for (var n in this.jisti_participants[pid].tracks) {
+                    var track = this.jisti_participants[pid].tracks[n];
+                    if (muted[track.getType()] != true) {
+                        muted[track.getType()] = track.isMuted();
+                    }
                 }
+                this.jisti_participants[pid].muted = muted;
             }
-            this.jisti_participants[pid].muted = muted;
         },
         join: function(roomname, password = null) {
             if ( this.room ) { this.leave(); }
@@ -363,7 +373,6 @@ var JitsiUI = new Vue({
             // this.room.on(JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED,
             //    (userID, audioLevel) => console.warn(`AudioLevel: ${userID} - ${audioLevel}`));
             this.room.join(password);
-            this.setReceiverConstraints();
         },
         leave: function() {
             this.room.leave();
@@ -377,44 +386,34 @@ var JitsiUI = new Vue({
             console.warn('jitsi connected', e, this);
         },
         getParticipants: function() {
-            var _participants=[];
-            for (var p of Object.values(this.participants)) {
-                _participants.push(p.participant_info());
+            var participants_info=[];
+            for (var pid in this.jisti_participants) {
+                participants_info.push( this.participants[pid].participant_info() );
             };
-            return _participants;
+            return participants_info;
         },
         setParticipantVisible: function(id, visible) {
             if(id in this.participants)
                 this.participants[id].visible = visible;
-            this.jitsiUpdateReceiverConstraints();
-        },
-        setReceiverConstraints: function() {
-            this.room.setReceiverConstraints({
-                constraints:{},
-                defaultConstraints: {
-                    "maxHeight": 1080
-                },
-                lastN:-1,
-                onStageEndpoints: [],
-                selectedEndpoints:[]
-            });
         },
         jitsiUpdateReceiverConstraints: function() {
             /* Update VideoBridge with desired track IDs and resolutions
              * https://github.com/jitsi/jitsi-videobridge/blob/master/doc/allocation.md#new-message-format
              */
             var endpoint_ids = [];
+            var endpoint_constraints = {};
             for (var p of Object.values(this.participants)) {
                 if( p.ui_video_running ) {
                     endpoint_ids.push(p.id);
+                    endpoint_constraints[p.id] = { 'maxHeight':  1080 }
                 }
             }
             var videoConstraints = {
-                lastN: 10,                      // max. number of videos requested from the bridge.
-                selectedEndpoints: {},          // The endpoints ids of the participants that are prioritized first.
-                onStageEndpoints: endpoint_ids, // The endpoint ids of the participants that are prioritized up to a higher resolution.
-                defaultConstraints: { 'maxHeight': 1080 }, // Default resolution requested for all endpoints.
-                constraints: {}
+                lastN: -1,                                  // max. number of videos requested from the bridge.
+                selectedEndpoints: [],                      // The endpoints ids of the participants that are prioritized first.
+                onStageEndpoints: endpoint_ids,             // The endpoint ids of the participants that are prioritized up to a higher resolution.
+                defaultConstraints: { 'maxHeight': 0 },     // disable all other endpoints
+                constraints: endpoint_constraints
             }
             console.warn("setReceiverConstraints:", videoConstraints);
             this.room.setReceiverConstraints(videoConstraints);
