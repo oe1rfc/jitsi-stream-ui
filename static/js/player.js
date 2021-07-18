@@ -373,6 +373,7 @@ var JitsiUI = new Vue({
             // this.room.on(JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED,
             //    (userID, audioLevel) => console.warn(`AudioLevel: ${userID} - ${audioLevel}`));
             this.room.join(password);
+            this.room.setReceiverVideoConstraint(1080);
         },
         leave: function() {
             this.room.leave();
@@ -388,7 +389,8 @@ var JitsiUI = new Vue({
         getParticipants: function() {
             var participants_info=[];
             for (var pid in this.jisti_participants) {
-                participants_info.push( this.participants[pid].participant_info() );
+                if(this.participants[pid])
+                    participants_info.push( this.participants[pid].participant_info() );
             };
             return participants_info;
         },
@@ -402,10 +404,11 @@ var JitsiUI = new Vue({
              */
             var endpoint_ids = [];
             var endpoint_constraints = {};
-            for (var p of Object.values(this.participants)) {
-                if( p.ui_video_running ) {
-                    endpoint_ids.push(p.id);
-                    endpoint_constraints[p.id] = { 'maxHeight':  1080 }
+            for (var pid in this.jisti_participants) {
+                var p = this.participants[pid];
+                if( p && p.active ) {
+                    endpoint_ids.push(pid);
+                    endpoint_constraints[pid] = { 'maxHeight':  1080 }
                 }
             }
             var videoConstraints = {
@@ -536,6 +539,8 @@ class StreamUI {
             self.jitsi.sendRoomMessage(d.message);
         });
         this.command('setDisplayName', function(d) {
+            self.parameters.displayName = d.displayName;
+            self.url_parameters_update();
             self.jitsi.setDisplayName(d.displayName);
         });
         
