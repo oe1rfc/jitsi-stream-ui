@@ -13,6 +13,14 @@ const io = socketio(server)
 const publicDirectoryPath = path.join(__dirname, './static')
 app.use(express.static(publicDirectoryPath))
 
+app.get('/config.json', (req, res) => res.json({
+    path:           (process.env.HTTP_PATH || "/stream-ui") + '/socket.io',
+    namespace:      process.env.WS_NAMESPACE || '/',
+    xmpp_id:        process.env.JITSI_XMPP_ID,
+    xmpp_password:  process.env.JITSI_XMPP_PASSWORD,
+    default_control_room:  process.env.DEFAULT_CONTROL_ROOM
+}));
+
 io.on('connection', socket => {
   console.log("new connection: " + socket.id)
   var room_send = null;

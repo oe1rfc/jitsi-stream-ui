@@ -259,7 +259,7 @@ var JitsiUI = new Vue({
         participant_destroyed: function(id) {
             Vue.delete( this.participants, id );
         },
-        connect_auth: function(id, password) {
+        xmpp_auth: function(id, password) {
             this.connect_options.id = id;
             this.connect_options.password = password;
         },
@@ -451,33 +451,44 @@ class StreamUI {
     jitsi = null;
     socket = null;
     parameters = {};
-    
-    constructor(jitsi, socketio_options) {
-        if (this.url_parameters_parse() == false)
-            return false;
-        this.url_parameters_update();
-        this.control_room = this.parameters.control;
-        this.worker_id = this.parameters.id;
+    config = {};
+
+    constructor(jitsi, streamui_config) {
         this.jitsi = jitsi;
+        this.config = streamui_config;
+
+        this.url_parameters_parse();
+        if( ! this.parameters.control ) { this.parameters.control = this.config.default_control_room; }
+        this.url_parameters_update();
+
+        this.worker_id = this.parameters.id;
+        this.control_room = this.parameters.control || this.config.default_control_room;
+        if( ! this.control_room) {
+            alert("warning: 'control' room parameter not set in url, can not proceed");
+            return false;
+        }
+
         if ( this.parameters.displayName ) {
             this.jitsi.displayName = this.parameters.displayName;
         } else {
             this.jitsi.displayName = `${this.jitsi.displayName} ${this.worker_id}`;
         }
-        this.jitsi.connect_auth(this.parameters.xmpp_id, this.parameters.xmpp_password);
+
+        this.jitsi.xmpp_auth(
+            this.parameters.xmpp_id || this.config.xmpp_id,
+            this.parameters.xmpp_password || this.config.xmpp_password
+        );
         this.jitsi.connect();
-        this.init_socketio(socketio_options);
+        this.init_socketio();
     }
 
     url_parameters_parse() {
         // parse hash location parameters
-        this.parameters = location.hash.replace('#', '').split('&').reduce((prev, item) => {
-            var kv = item.split('='); return Object.assign({[kv[0]]: decodeURIComponent(kv[1])}, prev); }, {});
-
-        if( ! this.parameters.control) {
-            alert("warning: 'control' room parameter not set in url, can not proceed");
-            return false;
+        if ( location.hash != '' ) {
+            this.parameters = location.hash.replace('#', '').split('&').reduce((prev, item) => {
+                var kv = item.split('='); return Object.assign({[kv[0]]: decodeURIComponent(kv[1])}, prev); }, {});
         }
+
         if( ! this.parameters.id) {
             // generate random client ID
             this.parameters.id = Math.random().toString(16).substr(2, 8);
@@ -488,9 +499,9 @@ class StreamUI {
         location.hash = "#" + Object.keys(p).map( function(k){ return k+"="+p[k] }).join("&");
     }
 
-    init_socketio(options) {
+    init_socketio() {
         var self = this;
-        this.socket = io(options.namespace, {path: options.path});
+        this.socket = io(this.config.namespace, {path: this.config.path});
         this.socket.on('connect', function() {
             self.socket.emit('register', {type: 'worker', room: self.control_room, id: self.worker_id});
         });
@@ -563,5 +574,7 @@ class StreamUI {
     }
 }
 
-var stream_socket = new StreamUI(JitsiUI, streamui_config);
-
+// get config and startup
+$.getJSON( "config.json", function( streamui_config ) {
+    window.stream_socket = new StreamUI(JitsiUI, streamui_config);
+});

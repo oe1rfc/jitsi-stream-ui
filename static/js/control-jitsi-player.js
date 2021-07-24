@@ -81,8 +81,8 @@ Vue.component('jitsi-client', {
                         <th>role</th>
                         <th>status</th>
                     </tr>
-                    <template v-for="participant in participants_sorted" :key="participant.id">
-                    <tr v-if="participant.hidden != true">
+                    <template v-for="participant in participants_sorted">
+                    <tr v-if="participant.hidden != true"  :key="participant.id">
                         <td style="text-align: left">
                             <a v-if="true" v-on:click="showParticipant(participant)" style="cursor: pointer">
                                 <i v-for="t in participant.tracks"
