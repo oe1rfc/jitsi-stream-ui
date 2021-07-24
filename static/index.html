@@ -47,9 +47,6 @@
     <script src="/config.js"></script>
 
 <style>
-  .controls-side {
-    padding-top: 15px;
-  }
   .controlpanel {
     margin-bottom: 15px;
     box-shadow: 0 0 0.5rem rgba(0, 0, 0, .2);
@@ -86,43 +83,21 @@
   .jitsi-participants i.participant-visible.fas:not(.fa-eye) {
     color: orangered !important;
   }
-
-  .video-container {
-/*    height: 607px;
-    width: 1080px; */
-    height: 607px;
-    width: 30%;
-    background-color: rgba(0,0,0,0.33);
-    position: fixed;
-    top: 4rem;
+  .container-fluid {
+    padding: 1.5rem;
   }
-
-  .regie-container {
-    top: 4rem;
-    right: 2rem;
-    position: absolute;
+  .jitsi-participant-volume {
+    width: 100%;
   }
-
 </style>
   </head>
   <body>
-    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-  <header class="">
-    <div class="inner">
-      <h3 class="masthead-brand">Jitsi Control</h3>
-    </div>
-  </header>
-
-  <main role="main" class="inner cover">
-
 <main role="main" class="container-fluid">
   <div class="row">
-    <div class="col-md-7 video-main">
-      <div class="video-container" id="video-container">
-      </div><!-- /.video-container -->
-    </div><!-- /.video-main -->
-
-    <aside id="regie-container" class="col-md-6 controls-side regie-container">
+      <h3>Jitsi Stream-UI</h3>
+  </div>
+  <div class="row">
+    <div id="regie-container" class="controls-side regie-container">
         <div class="p-2">
           <div class="custom-control custom-switch">
             <span v-on:click="copyPlayerLink" style="margin-right: 3rem">
@@ -139,7 +114,7 @@
           </div>
         </div>
       <jitsi-client v-for="j in jitsi_sorted" v-bind:jitsi="j" v-on:jitsi-event="jitsiEvent" v-bind:key="j.id"></jitsi-client>
-    </aside>
+    </div>
   </div>
 </main>
 

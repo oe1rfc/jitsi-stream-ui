@@ -110,7 +110,7 @@ Vue.component('jitsi-client', {
                                 <span class="input-group-text" style="padding: .15rem .4rem; background-color: rgba(200,200,200, 0.3); border: none">
                                     <i v-bind:class="{ 'fa-volume-mute': participant.options.audio_muted == true, 'fa-volume-down': participant.options.audio_muted == false }"
                                         class="fas" v-on:click="toggleParticipantMute(participant)" style="cursor: pointer">&nbsp;</i>
-                                    <input type="range" class="custom-range"  min="-40" max="0" step="1" :value="participant.options.audio_volume"
+                                    <input type="range" class="custom-range jitsi-participant-volume"  min="-40" max="0" step="1" :value="participant.options.audio_volume"
                                         v-on:input="setParticipantVolumeEvent(participant, $event)">
                                 </span>
                             </div>
