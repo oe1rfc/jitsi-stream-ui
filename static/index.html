@@ -125,6 +125,10 @@
     <aside id="regie-container" class="col-md-6 controls-side regie-container">
         <div class="p-2">
           <div class="custom-control custom-switch">
+            <span v-on:click="copyPlayerLink" style="margin-right: 3rem">
+              copy player link
+              <i class="fa fa-link" title="copy Player link"></i>
+            </span>
             <input type="checkbox" class="custom-control-input" id="enableControlSwitch" v-model="remote_control">
             <label class="custom-control-label" for="enableControlSwitch">Enable Control</label>
           </div>
@@ -268,6 +272,14 @@ $(document).ready(function() {
                     } else {
                     alert("control not enabled.");
                     }
+                },
+                copyPlayerLink: function() {
+                  var url = location.origin + location.pathname + "player.html#control="+parameters.control;
+                  var el = $("<input>");
+                  $("body").append(el);
+                  el.val(url).select();
+                  document.execCommand("copy");
+                  el.remove();
                 }
             }
         })
@@ -284,9 +296,7 @@ $(document).ready(function() {
                     Vue.set(regie, 'atem', msg.data);
                     break;
                 case 'disconnect':
-                    if (true){//msg.source in Object.keys(regie.jitsi)){
-                        Vue.delete(regie.jitsi, msg.source);
-                    }
+                      Vue.delete(regie.jitsi, msg.source);
                     break;
             }
             console.log('Received room message: ', msg);
