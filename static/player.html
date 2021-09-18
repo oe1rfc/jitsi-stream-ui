@@ -16,26 +16,64 @@
 :root, body {
     background: transparent;
     overflow: hidden; /* Hide scrollbars */
+
+    --pw21-darkgrey:    #1c234c;
+    --pw21-grey:        #677077;
+    --pw21-lightgrey:   #b5b5b7;
+    --pw21-darkblue:    #1d00bf;
+    --pw21-blue:        #00caf0;
+    --pw21-lightblue:   #89ecfe;
+    --pw21-yellow:      #ffd900;
+
+    --participant-aspect-ratio: 16/10;
+    --participant-background: var(--pw21-darkgrey);
+    --participant-border-color: var(--pw21-yellow);
+    --participant-border-width: 2px;
+    --participant-border-radius: 10px;
 }
 
 body { background: rgba(0,0,0, 0.7); }
 
-.video-column {
+.participant.tiled {
+/*
     min-width: 15%;
     min-height: 9em;
+*/
     flex-grow: initial;
     flex-basis: auto;
-    /*padding: 1rem;*/
+    padding: 0;
     position: relative;
-    margin: 1rem;
+    margin: 1vw;
+
+    aspect-ratio: var(--participant-aspect-ratio);
+    background-color: var(--participant-background);
+    border: var(--participant-border-width) solid var(--participant-border-color);
+    border-radius: var(--participant-border-radius);
 }
 
-.video-column.frame {
-    padding: 7.5px 7.5px 18px;
-    background: #dedede;
+
+/* one item */
+.elements_n1 > .tiled {
+    width: 90%;
 }
 
-.video-column.fullscreen {
+/* two items */
+.elements_n2 > .tiled, /* 2 */
+.elements_n3 > .tiled, /* 2,1 */
+.elements_n4 > .tiled {  /* 2,2 */
+    width: 40%;
+}
+
+/* three items */
+.elements_n5 > .tiled, /* 3,2 */
+.elements_n6 > .tiled, /* 3,3 */
+.elements_n7 > .tiled, /* 3,3,1 */
+.elements_n8 > .tiled, /* 3,3,2 */
+.elements_n9 > .tiled {  /* 3,3,3 */
+    width: 30%;
+}
+
+.participant.fullscreen {
     position: absolute;
     margin: 0;
     padding: 0;
@@ -44,23 +82,33 @@ body { background: rgba(0,0,0, 0.7); }
     width: 100%;
     height: 100%;
 }
-.video-column.active {
+.participant.active {
     z-index: 999;
 }
 
-.video-column > video {
+.participant > video {
     /* stretch video element to full parent size, set video itself to contain while maintaining aspect ratio*/
     height: 100%;
     width: 100%;
     object-fit: contain;
 }
 
-.video-column > h2 {
+.participant.frame > h2 {
     font-size: 18.11px;
     text-transform: none;
     color: #000;
     position: absolute;
     bottom: 0;
+}
+
+.participant.frame {
+    padding: 7.5px 7.5px 18px;
+    background: #dedede;
+}
+
+#videoparticipants {
+    padding: 1vh;
+    margin: 0;
 }
     </style>
   </head>
@@ -68,8 +116,8 @@ body { background: rgba(0,0,0, 0.7); }
 
     <div id="streamui-container" class="is-fullwidth">
         <section class="hero is-fullheight">
-            <div class="columns hero-body is-mobile is-vcentered is-centered is-multiline" id="videoparticipants">
-                <!-- <div class="column video-column">Container1</div> -->
+            <div class="columns hero-body is-mobile is-vcentered is-centered is-multiline" id="videoparticipants" v-bind:class="[count_class]">
+                <!-- <div class="column participant">Container1</div> -->
                 <participant v-for="(p, id) in participants_sorted" v-bind="p" :key="id"></participant>
             </div>
         </section>
@@ -77,4 +125,4 @@ body { background: rgba(0,0,0, 0.7); }
 
     <script src="js/player.js"></script>
   </body>
-</html> 
+</html>

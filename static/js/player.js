@@ -205,7 +205,7 @@ Vue.component('participant', {
         })
     },
   template: `
-        <div class="column video-column participant" :id="id" v-show="ui_visible" v-bind:class="{ 'fullscreen': ui_fullscreen, 'active': ui_dominant_speaker, 'frame': ui_frame }">
+        <div class="column participant" :id="id" v-show="ui_visible" v-bind:class="{ 'tiled': ui_visible && !ui_fullscreen, 'fullscreen': ui_fullscreen, 'active': ui_dominant_speaker, 'frame': ui_frame }">
             <template v-for="track in tracks">
                 <video v-if="track.getType() == 'video'" autoplay='1' :id="track.getTrackId()" v-show="ui_video_running" />
                 <audio v-if="track.getType() == 'audio'" autoplay='1' :id="track.getTrackId()" />
@@ -220,6 +220,7 @@ var JitsiUI = new Vue({
     data: {
         displayName: "Stream Display",
         jisti_participants: {},  // jitsi objects
+        count_class: '',
         participants: {},   // vue components
         fullscreen_speaker: null,
         jitsi: null,
@@ -383,9 +384,6 @@ var JitsiUI = new Vue({
         sendRoomMessage: function(text) {
             this.room.sendTextMessage(text);
         },
-        foo: function(e) {
-            console.warn('jitsi connected', e, this);
-        },
         getParticipants: function() {
             var participants_info=[];
             for (var pid in this.jisti_participants) {
@@ -393,10 +391,6 @@ var JitsiUI = new Vue({
                     participants_info.push( this.participants[pid].participant_info() );
             };
             return participants_info;
-        },
-        setParticipantVisible: function(id, visible) {
-            if(id in this.participants)
-                this.participants[id].visible = visible;
         },
         jitsiUpdateReceiverConstraints: function() {
             /* Update VideoBridge with desired track IDs and resolutions
@@ -429,6 +423,18 @@ var JitsiUI = new Vue({
         },
         updateParticipantOptions: function(id, options) {
             this.participants[id].updateOptions(options);
+            this._updateParticipantVisibleCount();
+        },
+        _updateParticipantVisibleCount: function() {
+            var nvisible = 0;
+            for (var p in this.participants) {
+                p = this.participants[p];
+                if(p.ui_visible) {
+                    nvisible+=1;
+                }
+            }
+            this.count_class="elements_n"+nvisible;
+            return nvisible;
         },
         setParticipantFullscreen: function(id) {
             if( this.fullscreen_speaker == id)
