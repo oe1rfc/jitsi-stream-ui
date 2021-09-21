@@ -78,7 +78,9 @@ Vue.component('participant', {
             }
         },
         setFullscreen: function(value) {
-            this.$set(this.options, 'visible', value);
+            if ( value == true ) {
+                this.$set(this.options, 'visible', value);
+            }
             this.$set(this.options, 'fullscreen', value);
         },
         attachTracks: function() {
@@ -206,10 +208,12 @@ Vue.component('participant', {
     },
   template: `
         <div class="column participant" :id="id" v-show="ui_visible" v-bind:class="{ 'tiled': ui_visible && !ui_fullscreen, 'fullscreen': ui_fullscreen, 'active': ui_dominant_speaker, 'frame': ui_frame }">
-            <template v-for="track in tracks">
-                <video v-if="track.getType() == 'video'" autoplay='1' :id="track.getTrackId()" v-show="ui_video_running" />
-                <audio v-if="track.getType() == 'audio'" autoplay='1' :id="track.getTrackId()" />
-            </template>
+            <div class="video-container">
+                <template v-for="track in tracks">
+                    <video v-if="track.getType() == 'video'" autoplay='1' :id="track.getTrackId()" v-show="ui_video_running" />
+                    <audio v-if="track.getType() == 'audio'" autoplay='1' :id="track.getTrackId()" />
+                </template>
+            <div>
             <h2 v-if="ui_frame" >{{ ui_display_name }}</h2>
         </div>
   `
@@ -259,6 +263,7 @@ var JitsiUI = new Vue({
         },
         participant_destroyed: function(id) {
             Vue.delete( this.participants, id );
+            this._updateParticipantVisibleCount();
         },
         xmpp_auth: function(id, password) {
             this.connect_options.id = id;
@@ -348,6 +353,17 @@ var JitsiUI = new Vue({
                 this.jisti_participants[pid].muted = muted;
             }
         },
+        jitsiDominantSpeakerChanged: function(id, previousSpeakers) {
+            console.warn("DOMINANT_SPEAKER_CHANGED: ", id, previousSpeakers);
+            if (id in this.participants) {
+                this.participants[id].dominant_speaker = true;
+            }
+            for (var id of previousSpeakers) {
+                if (id in this.participants) {
+                    this.participants[id].dominant_speaker = false;
+                }
+            }
+        },
         join: function(roomname, password = null) {
             if ( this.room ) { this.leave(); }
             this.room = this.jitsi.initJitsiConference(roomname, config); 
@@ -371,6 +387,7 @@ var JitsiUI = new Vue({
             this.room.on(JitsiMeetJS.events.conference.USER_JOINED, this.jitsiUserJoined);
             this.room.on(JitsiMeetJS.events.conference.USER_LEFT, this.jitsiUserLeft);
             this.room.on(JitsiMeetJS.events.conference.TRACK_MUTE_CHANGED, this.jitsiTrackMuteChanged);
+            this.room.on(JitsiMeetJS.events.conference.DOMINANT_SPEAKER_CHANGED, this.jitsiDominantSpeakerChanged);
             // this.room.on(JitsiMeetJS.events.conference.TRACK_AUDIO_LEVEL_CHANGED,
             //    (userID, audioLevel) => console.warn(`AudioLevel: ${userID} - ${audioLevel}`));
             this.room.join(password);

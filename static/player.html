@@ -27,30 +27,33 @@
 
     --participant-aspect-ratio: 16/10;
     --participant-background: var(--pw21-darkgrey);
-    --participant-border-color: var(--pw21-yellow);
-    --participant-border-width: 2px;
+    --participant-border-color: var(--pw21-lightblue);
+    --participant-border-color-active: var(--pw21-yellow);
+    --participant-border-width: 4px;
     --participant-border-radius: 10px;
 }
 
 body { background: rgba(0,0,0, 0.7); }
 
 .participant.tiled {
-/*
-    min-width: 15%;
-    min-height: 9em;
-*/
     flex-grow: initial;
     flex-basis: auto;
     padding: 0;
-    position: relative;
     margin: 1vw;
-
-    aspect-ratio: var(--participant-aspect-ratio);
+    height: auto;
+    position: relative;
     background-color: var(--participant-background);
     border: var(--participant-border-width) solid var(--participant-border-color);
     border-radius: var(--participant-border-radius);
+    overflow: hidden;
 }
 
+.participant.tiled > .video-container {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    overflow: hidden;
+}
 
 /* one item */
 .elements_n1 > .tiled {
@@ -81,16 +84,19 @@ body { background: rgba(0,0,0, 0.7); }
     left: 0;
     width: 100%;
     height: 100%;
-}
-.participant.active {
     z-index: 999;
 }
+.participant.tiled.active {
+    border: var(--participant-border-width) solid var(--participant-border-color-active) !important;
+}
 
-.participant > video {
+.participant video {
     /* stretch video element to full parent size, set video itself to contain while maintaining aspect ratio*/
     height: 100%;
     width: 100%;
-    object-fit: contain;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .participant.frame > h2 {
