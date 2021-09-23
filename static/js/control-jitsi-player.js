@@ -20,6 +20,11 @@ Vue.component('jitsi-client', {
     updateParticipantOptions: function(participant, options) {
       this.$emit('jitsi-event', this.jitsi.id, 'updateParticipantOptions', { id: participant.id, options: options });
     },
+    updateDisplayOption: function(option, value) {
+      var options = {};
+      options[option] = value;
+      this.$emit('jitsi-event', this.jitsi.id, 'updateDisplayOptions', { options: options });
+    },
     showParticipant: function(participant) {
       console.log("showing fullscreen", participant.displayName);
       this.$emit('jitsi-event', this.jitsi.id, 'setParticipantFullscreen', { id: participant.id });
@@ -71,6 +76,7 @@ Vue.component('jitsi-client', {
               <button type="button" class="btn btn-sm btn-danger" v-show="jitsi.room != null" v-on:click="UIdisconnect">Disconnect <i class="fas fa-grip-horizontal"></i></button>
             </div>
           </h5>
+            <!-- Participant List -->
             <table class="table table-striped small jitsi-participants">
                 <tbody>
                     <tr>
@@ -121,8 +127,16 @@ Vue.component('jitsi-client', {
                     </template>
                 </tbody>
             </table>
+            <!-- Option Sliders -->
             <div role="group" aria-label="cut-action">
-                <button type="button" class="btn btn-sm btn-secondary" v-show="jitsi.status == 'connected'" v-on:click="$emit('jitsi-event', jitsi.id, 'toggleTileView', {})">Toggle Tile View <i class="fas fa-grip-horizontal"></i></button>
+                <div class="form-check form-check-inline form-switch">
+                    <input class="form-check-input" type="checkbox"  v-model="jitsi.display_options.fullscreen" onClick="false;" v-on:click="updateDisplayOption('fullscreen', !jitsi.display_options.fullscreen)">
+                    <label class="form-check-label">enable fullscreen</label>
+                </div>
+                <div class="form-check form-check-inline form-switch">
+                    <input class="form-check-input" type="checkbox" v-model="jitsi.display_options.fullscreen_follow" onClick="return false;" v-on:click="updateDisplayOption('fullscreen_follow', !jitsi.display_options.fullscreen_follow)">
+                    <label class="form-check-label">follow active speaker</label>
+                </div>
             </div>
             <!-- Join Modal -->
             <div class="modal fade" :id="'joinModal'+jitsi.id" tabindex="-1" aria-labelledby="joinModalLabel" aria-hidden="true">

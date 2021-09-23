@@ -124,7 +124,7 @@ body { background: rgba(0,0,0, 0.7); }
         <section class="hero is-fullheight">
             <div class="columns hero-body is-mobile is-vcentered is-centered is-multiline" id="videoparticipants" v-bind:class="[count_class]">
                 <!-- <div class="column participant">Container1</div> -->
-                <participant v-for="(p, id) in participants_sorted" v-bind="p" :key="id"></participant>
+                <participant v-for="p in participants_sorted" v-bind="p" :key="p.id"></participant>
             </div>
         </section>
     </div>

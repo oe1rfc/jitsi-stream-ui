@@ -33,6 +33,7 @@
 
 Vue.component('participant', {
     props: {
+        id: String,
         order: Number,
         participant: Object,    // holds the jitsi participant object
         tracks: Object,
@@ -50,7 +51,7 @@ Vue.component('participant', {
                 picture_url: null,
                 video_muted: false,
                 audio_muted: true, // TESTING
-                audio_volume: -3,   // volume attenuation in decibels ( <= 0 )
+                audio_volume: -6,   // volume attenuation in decibels ( <= 0 )
             },
         }
     },
@@ -106,7 +107,6 @@ Vue.component('participant', {
                     } else {
                         e.volume = Math.pow(10, this.options.audio_volume/20);
                     }
-                    //this.tracks[n].setMute(this.options.audio_muted);
                 }
             }
         },
@@ -136,6 +136,7 @@ Vue.component('participant', {
                 displayName:    this.participant._displayName,
                 status:         this.participant._status,
                 options:        this.options,
+                dominant_speaker: this.dominant_speaker,
             }
         },
     },
@@ -169,9 +170,6 @@ Vue.component('participant', {
         },
     },
     computed: {
-        id: function() {
-            return this.participant.getId();
-        },
         jitsi_hidden: function() { // hidden domain in jitsi
             return this.participant._hidden;
         },
@@ -226,7 +224,12 @@ var JitsiUI = new Vue({
         jisti_participants: {},  // jitsi objects
         count_class: '',
         participants: {},   // vue components
+        display_options: {
+            fullscreen: false,
+            fullscreen_follow: true,
+        },
         fullscreen_speaker: null,
+        fullscreen_auto: false,
         jitsi: null,
         room: null,
         status: null,
@@ -255,13 +258,21 @@ var JitsiUI = new Vue({
         console.warn('JitsiUI created', this);
     },
     watch: {
-        displayName: function(val) { if (this.room) this.room.setDisplayName(val); }
+        displayName: function(val) {
+            if (this.room) this.room.setDisplayName(val);
+        },
+        'display_options.fullscreen': function(fullscreen, oldval) {
+            if ( fullscreen == false )
+                this.setParticipantFullscreen(null);
+        },
     },
     methods: {
         participant_created: function(id, component) {
+            console.warn('participant_created', id);
             this.$set(this.participants, id, component);
         },
         participant_destroyed: function(id) {
+            console.warn('participant_destroyed', id);
             Vue.delete( this.participants, id );
             this._updateParticipantVisibleCount();
         },
@@ -304,6 +315,7 @@ var JitsiUI = new Vue({
             }
             console.warn('user joined', id, this);
             this.$set(this.jisti_participants, id, {
+                id: id,
                 order: this.order_count++,
                 participant: participant,
                 muted: { video: null, audio: null },
@@ -311,7 +323,7 @@ var JitsiUI = new Vue({
             });
         },
         jitsiUserLeft: function(id) {
-            console.warn('user left', id);
+            console.warn('jitsiUserLeft', id);
             if (id in this.jisti_participants) {
                 Vue.delete(this.jisti_participants, id );
             }
@@ -329,10 +341,9 @@ var JitsiUI = new Vue({
             console.warn('track removed', track, this);
             if (track.isLocal()) { return; }
             var pid = track.getParticipantId();
-            if (pid in this.jisti_participants) {
+            if (pid in this.participants) {
                 this.participants[pid].cleanupTracks(track);
                 Vue.delete(this.jisti_participants[pid].tracks, track.getId() );
-                // delete this.jisti_participants[pid].tracks[track.getId()]; // TODO this probably needs cleanup
                 this.jitsiParticipantUpdateMuted(pid);
             }
         },
@@ -355,13 +366,21 @@ var JitsiUI = new Vue({
         },
         jitsiDominantSpeakerChanged: function(id, previousSpeakers) {
             console.warn("DOMINANT_SPEAKER_CHANGED: ", id, previousSpeakers);
+            var participant = null;
             if (id in this.participants) {
-                this.participants[id].dominant_speaker = true;
+                participant = this.participants[id];
+                participant.dominant_speaker = true;
             }
-            for (var id of previousSpeakers) {
-                if (id in this.participants) {
-                    this.participants[id].dominant_speaker = false;
+            for (var pid of previousSpeakers) {
+                if (pid in this.participants) {
+                    this.participants[pid].dominant_speaker = false;
                 }
+            }
+            // set fullscreen on participant if automatic switching is enabled
+            if (participant && participant.options.visible &&
+                this.display_options.fullscreen &&
+                this.display_options.fullscreen_follow ) {
+                this.setParticipantFullscreen(id);
             }
         },
         join: function(roomname, password = null) {
@@ -403,7 +422,7 @@ var JitsiUI = new Vue({
         },
         getParticipants: function() {
             var participants_info=[];
-            for (var pid in this.jisti_participants) {
+            for (var pid in this.participants) {
                 if(this.participants[pid])
                     participants_info.push( this.participants[pid].participant_info() );
             };
@@ -438,6 +457,12 @@ var JitsiUI = new Vue({
                 this.$set(this.jisti_participants[pid].order, orders[pid]);
             }
         },
+        updateDisplayOptions: function(options) {
+            console.warn("update display options:", options);
+            for(var option in options) {
+                this.$set(this.display_options, option, options[option]);
+            }
+        },
         updateParticipantOptions: function(id, options) {
             this.participants[id].updateOptions(options);
             this._updateParticipantVisibleCount();
@@ -454,12 +479,10 @@ var JitsiUI = new Vue({
             return nvisible;
         },
         setParticipantFullscreen: function(id) {
-            if( this.fullscreen_speaker == id)
-                id = null;
-            this.fullscreen_speaker = id;
             for (var p of Object.values(this.participants)) {
                 p.setFullscreen(p.id == id);
             }
+            this.display_options.fullscreen = ( id == null) ? false : true;
         },
         setDisplayName: function(name) {
             this.displayName = name;
@@ -577,7 +600,10 @@ class StreamUI {
             self.url_parameters_update();
             self.jitsi.setDisplayName(d.displayName);
         });
-        
+        this.command('updateDisplayOptions', function(d) {
+            self.jitsi.updateDisplayOptions(d.options);
+            self.send_update();
+        });
     }
     command(action, callback) {
         this._commands[action] = callback;
@@ -591,6 +617,7 @@ class StreamUI {
             displayName:    this.jitsi.displayName,
             room:           this.jitsi.room ? this.jitsi.room.getName():null,
             status:         this.jitsi.status,
+            display_options: this.jitsi.display_options,
             participants:   this.jitsi.getParticipants()
         }
         this.socket.emit('room', {type: 'jitsi', source: this.worker_id, data: data});
