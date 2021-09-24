@@ -81,27 +81,24 @@ Vue.component('jitsi-client', {
                 <tbody>
                     <tr>
                         <th>Name</th>
-                        <th><i class="fas fa-grip-horizontal"></i></th>
                         <th>Tracks</th>
                         <th>Volume</th>
-                        <th>role</th>
                         <th>status</th>
                     </tr>
                     <template v-for="participant in participants_sorted">
                     <tr v-if="participant.hidden != true"  :key="participant.id">
                         <td style="text-align: left">
-                            <a v-if="true" v-on:click="showParticipant(participant)" style="cursor: pointer">
-                                <i v-for="t in participant.tracks"
-                                    v-if="t.type == 'audio' && t.muted != true"
-                                    v-bind:style="{ opacity: t.audioLevel*500 + '%' }"
-                                    style="color: #60ff80; transition:opacity 0.3s; width:0px;overflow:visible"
-                                class="fas fa-circle"></i>
-                                <b style="padding-left: 1em" v-bind:style="[ participant.options.fullscreen ? { 'text-transform': 'uppercase' } : { } ]">{{ participant.displayName }}</b>
-                            </a>
-                        </td>
-                        <td>
                             <i v-bind:class="{ 'fa-eye': participant.options.visible == true, 'fa-eye-slash': participant.options.visible == false }"
-                                class="fas participant-visible" v-on:click="toggleParticipantVisible(participant)" style="cursor: pointer;">&nbsp;</i>
+                              class="fas participant-visible" v-on:click="toggleParticipantVisible(participant)" style="cursor: pointer;">&nbsp;
+                            </i>
+                            <a v-if="true" v-on:click="showParticipant(participant)" style="cursor: pointer">
+                              <i v-for="t in participant.tracks"
+                                v-if="t.type == 'audio' && t.muted != true"
+                                v-bind:style="{ opacity: t.audioLevel*500 + '%' }"
+                                style="color: #60ff80; transition:opacity 0.3s; width:0px;overflow:visible"
+                                class="fas fa-circle"></i>
+                              <b style="padding-left: 1em" v-bind:style="[ participant.options.fullscreen ? { 'text-transform': 'uppercase' } : { } ]">{{ participant.displayName }}</b>
+                            </a>
                         </td>
                         <td>
                             <i v-for="t in participant.tracks"
@@ -115,14 +112,22 @@ Vue.component('jitsi-client', {
                             <div style="input-group" v-for="t in participant.tracks" v-if="t.type == 'audio'">
                                 <span class="input-group-text" style="padding: .15rem .4rem; background-color: rgba(200,200,200, 0.3); border: none">
                                     <i v-bind:class="{ 'fa-volume-mute': participant.options.audio_muted == true, 'fa-volume-down': participant.options.audio_muted == false }"
-                                        class="fas" v-on:click="toggleParticipantMute(participant)" style="cursor: pointer">&nbsp;</i>
+                                        class="fas participant-mute" v-on:click="toggleParticipantMute(participant)" style="cursor: pointer">&nbsp;</i>
                                     <input type="range" class="custom-range jitsi-participant-volume"  min="-40" max="0" step="1" :value="participant.options.audio_volume"
                                         v-on:input="setParticipantVolumeEvent(participant, $event)">
                                 </span>
                             </div>
                         </td>
-                        <td>{{ participant.role }}</td>
-                        <td>{{ participant.connection }}</td>
+                        <td>
+                            <i v-bind:class="{ 'fa-user': participant.role == 'participant', 'fa-user-graduate': participant.role == 'moderator' }"
+                                class="fas participant-role"></i>
+                            <i v-bind:class="{
+                              'fa-check-circle': participant.connection == 'active',
+                              'fa-pause-circle': participant.connection == 'inactive',
+                              'fa-exclamation-triangle': participant.connection == 'interrupted',
+                              'fa-spinner': participant.connection == 'restoring'
+                            }" class="fas participant-connection"></i>
+                        </td>
                     </tr>
                     </template>
                 </tbody>
