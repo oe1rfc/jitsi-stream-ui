@@ -247,15 +247,6 @@ var JitsiUI = new Vue({
         }
     },
     created: function () {
-        JitsiMeetJS.init(config);
-        JitsiMeetJS.setLogLevel(JitsiMeetJS.logLevels.WARNING);
-        this.jitsi = new JitsiMeetJS.JitsiConnection("app-stream-ui", null, config);
-        this.jitsi.addEventListener(JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED, this.jitsiConnected);
-        this.jitsi.addEventListener(JitsiMeetJS.events.connection.CONNECTION_FAILED, this.jitsiConfailed);
-        this.jitsi.addEventListener(JitsiMeetJS.events.connection.CONNECTION_DISCONNECTED, this.jitsiDisconnected);
-        // PASSWORD_REQUIRED
-        // CONNECTION_DROPPED_ERROR
-        console.warn('JitsiUI created', this);
     },
     watch: {
         displayName: function(val) {
@@ -267,6 +258,18 @@ var JitsiUI = new Vue({
         },
     },
     methods: {
+        connect: function() {
+            JitsiMeetJS.init(config);
+            JitsiMeetJS.setLogLevel(JitsiMeetJS.logLevels.WARNING);
+            this.jitsi = new JitsiMeetJS.JitsiConnection("app-stream-ui", null, config);
+            this.jitsi.addEventListener(JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED, this.jitsiConnected);
+            this.jitsi.addEventListener(JitsiMeetJS.events.connection.CONNECTION_FAILED, this.jitsiConfailed);
+            this.jitsi.addEventListener(JitsiMeetJS.events.connection.CONNECTION_DISCONNECTED, this.jitsiDisconnected);
+            // PASSWORD_REQUIRED
+            // CONNECTION_DROPPED_ERROR
+            if (this.jitsi.xmpp.connection.connected != true)
+                this.jitsi.connect(this.connect_options); // connect(options) - JS Object with id and password properties.
+        },
         participant_created: function(id, component) {
             console.warn('participant_created', id);
             this.$set(this.participants, id, component);
@@ -279,10 +282,6 @@ var JitsiUI = new Vue({
         xmpp_auth: function(id, password) {
             this.connect_options.id = id;
             this.connect_options.password = password;
-        },
-        connect: function() {
-            if (this.jitsi.xmpp.connection.connected != true)
-                this.jitsi.connect(this.connect_options); // connect(options) - JS Object with id and password properties.
         },
         retry_connection: function() {
             // reconnect after 2 secs
@@ -624,7 +623,27 @@ class StreamUI {
     }
 }
 
+function loadScript(src, onload) {
+    var e = document.createElement('script');
+    e.src = src;
+    e.onload = onload;
+    document.head.append(e);
+}
+
+function startUp(streamui_config) {
+    // start client if jitsi config and lib-jitsi-meet is loaded
+    if (typeof window.JitsiMeetJS  == 'undefined' ||
+        typeof window.config == 'undefined' ||
+        typeof window.stream_socket != 'undefined') { return }
+    console.warn("startUp", streamui_config);
+    // force jitsi bosh via https
+    window.config.bosh = window.config.bosh.replace(/^\/\//g, 'https://');
+    window.stream_socket = new StreamUI(JitsiUI, streamui_config);
+}
+
 // get config and startup
 $.getJSON( "config.json", function( streamui_config ) {
-    window.stream_socket = new StreamUI(JitsiUI, streamui_config);
+    var jitsi_url = (streamui_config.jitsi_url || '')
+    loadScript(`${jitsi_url}/libs/lib-jitsi-meet.min.js`, function() { startUp(streamui_config); });
+    loadScript(`${jitsi_url}/config.js`, function() { startUp(streamui_config); });
 });

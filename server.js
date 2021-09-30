@@ -14,7 +14,8 @@ const publicDirectoryPath = path.join(__dirname, './static')
 app.use(express.static(publicDirectoryPath))
 
 app.get('/config.json', (req, res) => res.json({
-    path:           (process.env.HTTP_PATH || "/stream-ui") + '/socket.io',
+    jitsi_url:   (process.env.JITSI_URL || '').replace(/\/$/g, ''),
+    path:           (process.env.HTTP_PATH || "").replace(/\/$/g, '') + '/socket.io',
     namespace:      process.env.WS_NAMESPACE || '/',
     xmpp_id:        process.env.JITSI_XMPP_ID,
     xmpp_password:  process.env.JITSI_XMPP_PASSWORD,
