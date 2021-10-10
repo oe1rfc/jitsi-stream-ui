@@ -66,7 +66,7 @@ Vue.component('jitsi-client', {
     }
   },
   template: `
-          <div class="p-3 controlpanel">
+          <div class="p-2 controlpanel">
           <h5>
             <span contenteditable v-text="jitsi.displayName" @blur="playerDisplayNameChange" @keydown.enter="function(e) {e.path[0].blur();}"></span>
               ({{ jitsi.id }}), 

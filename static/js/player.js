@@ -384,11 +384,12 @@ var JitsiUI = new Vue({
         },
         join: function(roomname, password = null) {
             if ( this.room ) { this.leave(); }
+            roomname = roomname.toLowerCase(); // rooms are always lowercase
             this.room = this.jitsi.initJitsiConference(roomname, config); 
             this.room.on(JitsiMeetJS.events.conference.TRACK_ADDED, this.jitsiTrackAdded);
             this.room.on(JitsiMeetJS.events.conference.TRACK_REMOVED, this.jitsiTrackRemoved);
             this.room.on(JitsiMeetJS.events.conference.CONFERENCE_JOINED, this.jitsiConferenceJoined);
-            /* TODO interesting events:
+            /* interesting events:
              * conference.<>
              * CONFERENCE_LEFT (no parameters)
              * CONFERENCE_FAILED (parameters - errorCode(JitsiMeetJS.errors.conference))
