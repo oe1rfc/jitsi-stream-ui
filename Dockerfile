@@ -7,8 +7,9 @@ COPY yarn.lock .
 
 RUN yarn install
 
-COPY server.js .
+COPY *.js ./
 COPY static static
 
 EXPOSE 3000
-CMD [ "node", "server.js" ]
+ENTRYPOINT [ "yarn" ]
+CMD [ "server" ]

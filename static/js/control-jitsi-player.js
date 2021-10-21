@@ -1,10 +1,10 @@
 Vue.component('jitsi-client', {
   props: ['jitsi'],
-      data: function() {
-        return {
-            join_room_name: "",
-            join_room_password: "",
-        }
+  data: function() {
+    return {
+      join_room_name: "",
+      join_room_password: "",
+    }
   },
   computed: {
       participants_sorted: function () {
@@ -18,16 +18,16 @@ Vue.component('jitsi-client', {
   },
   methods: {
     updateParticipantOptions: function(participant, options) {
-      this.$emit('jitsi-event', this.jitsi.id, 'updateParticipantOptions', { id: participant.id, options: options });
+      this.$emit('control-event', this.jitsi.id, 'updateParticipantOptions', { id: participant.id, options: options });
     },
     updateDisplayOption: function(option, value) {
       var options = {};
       options[option] = value;
-      this.$emit('jitsi-event', this.jitsi.id, 'updateDisplayOptions', { options: options });
+      this.$emit('control-event', this.jitsi.id, 'updateDisplayOptions', { options: options });
     },
     showParticipant: function(participant) {
       console.log("showing fullscreen", participant.displayName);
-      this.$emit('jitsi-event', this.jitsi.id, 'setParticipantFullscreen', { id: participant.id });
+      this.$emit('control-event', this.jitsi.id, 'setParticipantFullscreen', { id: participant.id });
     },
     toggleParticipantMute: function(participant) {
       console.log("mute toggle", participant.displayName);
@@ -47,7 +47,7 @@ Vue.component('jitsi-client', {
     },
     playerDisplayNameChange: function(e) {
       var displayName = e.target.innerText;
-      this.$emit('jitsi-event', this.jitsi.id, 'setDisplayName', { displayName: displayName });
+      this.$emit('control-event', this.jitsi.id, 'setDisplayName', { displayName: displayName });
     },
     UIjoin: function() {
       if (!this.input_roomname_invalid) {
@@ -55,27 +55,26 @@ Vue.component('jitsi-client', {
         var password = this.join_room_password;
         if (password.length == 0) { password = null; }
         console.log('join', room, password, this);
-        this.$emit('jitsi-event', this.jitsi.id, 'join', { 'room': room, 'password': password } );
+        this.$emit('control-event', this.jitsi.id, 'join', { 'room': room, 'password': password } );
       }
     },
     UIdisconnect: function() {
       var confirm = prompt('please enter the word \'LEAVE\':');
       if (confirm === "LEAVE") {
-        this.$emit('jitsi-event', this.jitsi.id, 'leave', {} );
+        this.$emit('control-event', this.jitsi.id, 'leave', {} );
       }
     }
   },
   template: `
-          <div class="p-2 controlpanel">
-          <h5>
-            <span contenteditable v-text="jitsi.displayName" @blur="playerDisplayNameChange" @keydown.enter="function(e) {e.path[0].blur();}"></span>
-              ({{ jitsi.id }}), 
-              status: {{ jitsi.status }}, room: {{ jitsi.room || 'none' }}
+        <div class="p-2 controlpanel jitsi">
+          <div>
+            <span class="header" contenteditable v-text="jitsi.displayName" @blur="playerDisplayNameChange" @keydown.enter="function(e) {e.path[0].blur();}"></span>
+              ({{ jitsi.id }}), status: {{ jitsi.status }}, room: {{ jitsi.room || 'none' }}
             <div class="float-right">
               <button type="button" class="btn btn-sm btn-success" v-show="jitsi.room == null" data-bs-toggle="modal" :data-bs-target="'#joinModal'+jitsi.id">Join Room</button>
               <button type="button" class="btn btn-sm btn-danger" v-show="jitsi.room != null" v-on:click="UIdisconnect">Disconnect <i class="fas fa-grip-horizontal"></i></button>
             </div>
-          </h5>
+          </div>
             <!-- Participant List -->
             <table class="table table-striped small jitsi-participants">
                 <tbody>
@@ -83,7 +82,7 @@ Vue.component('jitsi-client', {
                         <th>Name</th>
                         <th>Tracks</th>
                         <th>Volume</th>
-                        <th>status</th>
+                        <th></th>
                     </tr>
                     <template v-for="participant in participants_sorted">
                     <tr v-if="participant.hidden != true"  :key="participant.id">

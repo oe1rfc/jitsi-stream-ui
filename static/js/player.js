@@ -624,13 +624,6 @@ class StreamUI {
     }
 }
 
-function loadScript(src, onload) {
-    var e = document.createElement('script');
-    e.src = src;
-    e.onload = onload;
-    document.head.append(e);
-}
-
 function startUp(streamui_config) {
     // start client if jitsi config and lib-jitsi-meet is loaded
     if (typeof window.JitsiMeetJS  == 'undefined' ||

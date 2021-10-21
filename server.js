@@ -14,12 +14,15 @@ const publicDirectoryPath = path.join(__dirname, './static')
 app.use(express.static(publicDirectoryPath))
 
 app.get('/config.json', (req, res) => res.json({
-    jitsi_url:   (process.env.JITSI_URL || '').replace(/\/$/g, ''),
-    path:           (process.env.HTTP_PATH || "").replace(/\/$/g, '') + '/socket.io',
-    namespace:      process.env.WS_NAMESPACE || '/',
-    xmpp_id:        process.env.JITSI_XMPP_ID,
-    xmpp_password:  process.env.JITSI_XMPP_PASSWORD,
-    default_control_room:  process.env.DEFAULT_CONTROL_ROOM
+    jitsi_url:              (process.env.JITSI_URL || '').replace(/\/$/g, ''),
+    jitsi_multiview:        process.env.JITSI_MULTIVIEW || false,
+    jitsi_multiview_pass:   process.env.JITSI_MULTIVIEW_PASS || '',
+    path:                   (process.env.HTTP_PATH || "").replace(/\/$/g, '') + '/socket.io',
+    namespace:              process.env.WS_NAMESPACE || '/',
+    xmpp_id:                process.env.JITSI_XMPP_ID,
+    xmpp_password:          process.env.JITSI_XMPP_PASSWORD,
+    default_control_room:   process.env.DEFAULT_CONTROL_ROOM,
+    hide_player_link:       process.env.HIDE_PLAYER_LINK ? true : false,
 }));
 
 io.on('connection', socket => {
@@ -52,7 +55,7 @@ io.on('connection', socket => {
 
   socket.on("room", (data, callback) => {
     socket.to(room_send).emit("room", data);
-    console.log("room message => " + room_send, data);
+    console.log("room message => " + room_send, { type: data.type, source: data.source, command: data.command });
   });
 
 })
