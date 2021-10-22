@@ -26,7 +26,7 @@ $(document).ready(function() {
         window.regie = new Vue({
             el: '#regie-container',
             data: {
-                remote_control: true,
+                remote_control: false,
                 jitsi_participants: null,
                 config: streamui_config,
                 JitsiClients: {},
