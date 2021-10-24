@@ -31,12 +31,12 @@ Vue.component('obs', {
   },
   template: `
         <div class="p-2 controlpanel obs">
-          <div>
-            <span class="header">OBS {{ obs.id }}</span>
-            status: {{ obs.status }}
-          </div>
           <div class="obs-flex">
             <div class="obs-left">
+              <div>
+                <span class="header">OBS {{ obs.id }}</span>
+                status: {{ obs.status }}
+              </div>
               <div class="obs-scenes">
                   <button v-for="scene in obs.scenes" type="button"
                     class="btn btn-sm btn-secondary" v-bind:class="{

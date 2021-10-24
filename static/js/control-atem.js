@@ -82,7 +82,7 @@ Vue.component('atem', {
           </div>
       </div>
       <div class="text-center" style="margin-top:1rem">
-        <div role="group" aria-label="cut-action">
+        <div class="cut-actions" role="group" aria-label="cut-action">
           <button type="button" class="btn btn-lg btn-secondary" v-on:click="sendEvent('cut', {})">Cut</button>
           <button type="button" class="btn btn-lg btn-secondary" v-on:click="sendEvent('auto', {})"
               v-bind:class="{ 'progress-bar-striped progress-bar-animated active': atem.state && atem.state.inTransition}" >Fade</button>
