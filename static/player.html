@@ -88,6 +88,10 @@ body { background: rgba(0,0,0, 0.7); }
     border: var(--participant-border-width) solid var(--participant-border-color-active) !important;
 }
 
+.fullscreen-only > .participant.tiled {
+    opacity: 0;
+}
+
 .participant video {
     /* stretch video element to full parent size, set video itself to contain while maintaining aspect ratio*/
     height: 100%;
@@ -120,7 +124,7 @@ body { background: rgba(0,0,0, 0.7); }
 
     <div id="streamui-container" class="is-fullwidth">
         <section class="hero is-fullheight">
-            <div class="columns hero-body is-mobile is-vcentered is-centered is-multiline" id="videoparticipants" v-bind:class="[count_class]">
+            <div class="columns hero-body is-mobile is-vcentered is-centered is-multiline" id="videoparticipants" v-bind:class="container_classes">
                 <!-- <div class="column participant">Container1</div> -->
                 <participant v-for="p in participants_sorted" v-bind="p" :key="p.id"></participant>
             </div>

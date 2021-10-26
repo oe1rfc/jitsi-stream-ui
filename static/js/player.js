@@ -222,7 +222,7 @@ var JitsiUI = new Vue({
     data: {
         displayName: "Stream Display",
         jisti_participants: {},  // jitsi objects
-        count_class: '',
+        container_classes: [],
         participants: {},   // vue components
         display_options: {
             fullscreen: false,
@@ -277,7 +277,7 @@ var JitsiUI = new Vue({
         participant_destroyed: function(id) {
             console.warn('participant_destroyed', id);
             Vue.delete( this.participants, id );
-            this._updateParticipantVisibleCount();
+            this._updateContainerClasses();
         },
         xmpp_auth: function(id, password) {
             this.connect_options.id = id;
@@ -465,17 +465,27 @@ var JitsiUI = new Vue({
         },
         updateParticipantOptions: function(id, options) {
             this.participants[id].updateOptions(options);
-            this._updateParticipantVisibleCount();
+            this._updateContainerClasses();
         },
-        _updateParticipantVisibleCount: function() {
+        _updateContainerClasses: function() {
+            var classes = [];
             var nvisible = 0;
+            var fullscreen = false;
             for (var p in this.participants) {
                 p = this.participants[p];
                 if(p.ui_visible) {
                     nvisible+=1;
                 }
+                if(p.options.fullscreen == true) {
+                    fullscreen = true;
+                }
             }
-            this.count_class="elements_n"+nvisible;
+            classes.push("elements_n"+nvisible);
+            if (fullscreen == true) {
+                classes.push("fullscreen-only");
+            }
+            console.error('container_classes', classes);
+            this.container_classes = classes;
             return nvisible;
         },
         setParticipantFullscreen: function(id) {
@@ -483,6 +493,7 @@ var JitsiUI = new Vue({
                 p.setFullscreen(p.id == id);
             }
             this.display_options.fullscreen = ( id == null) ? false : true;
+            this._updateContainerClasses();
         },
         setDisplayName: function(name) {
             this.displayName = name;
