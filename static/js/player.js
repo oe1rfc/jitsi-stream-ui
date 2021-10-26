@@ -582,6 +582,7 @@ class StreamUI {
         this.command('leave', function(d) {
             console.log('leave', d);
             self.jitsi.leave();
+            window.location.reload(true);
         });
         this.command('setParticipantOrders', function(d) {
             self.jitsi.setParticipantOrders(d.orders);
