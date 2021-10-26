@@ -221,6 +221,7 @@ var JitsiUI = new Vue({
     el: '#streamui-container',
     data: {
         displayName: "Stream Display",
+        backgroundImage: null,
         jisti_participants: {},  // jitsi objects
         container_classes: [],
         participants: {},   // vue components
@@ -256,6 +257,14 @@ var JitsiUI = new Vue({
         'display_options.fullscreen': function(fullscreen, oldval) {
             if ( fullscreen == false )
                 this.setParticipantFullscreen(null);
+        },
+        backgroundImage: function(val) {
+            console.error("setting background to", val);
+            if (val) {
+                document.body.style.backgroundImage = `url('${val}')`;
+            } else {
+                document.body.style.backgroundImage = "";
+            }
         },
     },
     methods: {
@@ -543,7 +552,9 @@ class StreamUI {
         } else {
             this.jitsi.displayName = `${this.jitsi.displayName} ${this.worker_id}`;
         }
-
+        if ( this.parameters.backgroundImage ) {
+            this.jitsi.backgroundImage = this.parameters.backgroundImage;
+        }
         this.jitsi.xmpp_auth(
             this.parameters.xmpp_id || this.config.xmpp_id,
             this.parameters.xmpp_password || this.config.xmpp_password
