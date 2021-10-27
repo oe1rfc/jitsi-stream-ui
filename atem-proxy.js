@@ -29,6 +29,7 @@ atem.on('error', console.error)
 
 const sendUpdate = function(event) {
     send_room({
+        id: config.worker_id,
         inputs: getVideoInputs(atem.state),
         audio:  getAudioInputs(atem.state),
         state:  getPreviewProgram(atem.state)
@@ -45,6 +46,7 @@ AtemEvent.on('audio.channels.6', sendUpdate);
 AtemEvent.on('audio.channels.7', sendUpdate);
 AtemEvent.on('audio.channels.8', sendUpdate);
 AtemEvent.on('audio.channels.1001', sendUpdate); // XLR
+AtemEvent.on('video.auxilliaries.0', sendUpdate);
 AtemEvent.on('video.mixEffects.0.transitionPosition', () => {});
 
  /* Atem connection logic */
@@ -169,8 +171,9 @@ function getPreviewProgram(state) {
         if (eff.index === 0) {
             return {
                 preview: eff.previewInput,
-                program: eff.programInput, 
-                inTransition: eff.transitionPosition.inTransition
+                program: eff.programInput,
+                inTransition: eff.transitionPosition.inTransition,
+                auxilliaries: state.video.auxilliaries
             };
         }
     }

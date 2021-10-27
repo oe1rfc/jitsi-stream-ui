@@ -39,7 +39,7 @@ Vue.component('atem', {
         <span class="header">Audio Inputs</span>
           <div class="btn-group mr-2" role="group" aria-label="Mixer Audio" style="width:100%; background: rgba(255,255,255, 0.05)">
               <div v-for="i in atem.audio.channels" :key="i.id" class="btn-group" role="group" v-if="audio_getName(i.id) != ''">
-                  <button :id="'audio-dropdown'+atem.id+'-'+i.id" type="button" class="btn btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
+                  <button :id="'audio-dropdown-'+atem.id+'-'+i.id" type="button" class="btn btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
                   v-bind:class="{ 'btn-outline-secondary': i.state == 'off', 'btn-success': i.state == 'on',
                       'btn-outline-warning': i.state == 'afv' && !input_isLive(i.id), 'btn-warning': i.state == 'afv' && input_isLive(i.id)}">
                   {{ audio_getName(i.id) }}
