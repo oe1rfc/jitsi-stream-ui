@@ -323,6 +323,12 @@ var JitsiUI = new Vue({
         },
         jitsiUserLeft: function(id) {
             console.warn('jitsiUserLeft', id);
+            if (id in this.participants) {
+                p = this.participants[id];
+                if (p.options.visible && p.options.fullscreen) {
+                    this.setParticipantFullscreen(null);
+                }
+            }
             if (id in this.jisti_participants) {
                 Vue.delete(this.jisti_participants, id );
             }
