@@ -1,0 +1,13 @@
+
+:root {
+    --ms-black:     #0000000;
+    --ms-white:     #ffffff;
+    --ms-red:       #cd0f15;
+    --ms-grey:      #999;
+
+    --participant-background-color:     rgba(0,0,0, 0.33);
+    --participant-border-color:         var(--ms-grey);
+    --participant-border-color-active:  var(--ms-red);
+    --participant-border-width:         5px;
+    --participant-border-radius:        10px;
+}

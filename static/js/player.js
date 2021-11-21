@@ -259,7 +259,6 @@ var JitsiUI = new Vue({
                 this.setParticipantFullscreen(null);
         },
         backgroundImage: function(val) {
-            console.error("setting background to", val);
             if (val) {
                 document.body.style.backgroundImage = `url('${val}')`;
             } else {
@@ -506,7 +505,6 @@ var JitsiUI = new Vue({
             if (fullscreen == true) {
                 classes.push("fullscreen-only");
             }
-            console.error('container_classes', classes);
             this.container_classes = classes;
             return nvisible;
         },
@@ -559,6 +557,9 @@ class StreamUI {
             this.parameters.xmpp_id || this.config.xmpp_id,
             this.parameters.xmpp_password || this.config.xmpp_password
         );
+        if ( this.parameters.css ) {
+            $('head').append(`<link rel="stylesheet" type="text/css" href="${this.parameters.css}">`);
+        }
         this.jitsi.connect();
         this.init_socketio();
     }

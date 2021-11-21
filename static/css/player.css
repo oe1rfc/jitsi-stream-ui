@@ -1,0 +1,105 @@
+
+:root {
+    --participant-background-color:     rgba(0, 0, 0, 0.25);
+    --participant-border-color:         rgb(140, 160, 200);
+    --participant-border-color-active:  rgb(255, 50, 50);
+    --participant-border-width:         5px;
+    --participant-border-radius:        10px;
+}
+
+:root, body {
+    background: transparent;
+    overflow: hidden; /* Hide scrollbars */
+}
+
+body {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-color: rgba(10, 0, 40, 0.6);
+}
+
+.participant.tiled {
+    flex-grow: initial;
+    flex-basis: auto;
+    padding: 0;
+    margin: 1vw;
+    height: auto;
+    position: relative;
+    background-color: var(--participant-background-color);
+    border: var(--participant-border-width) solid var(--participant-border-color);
+    border-radius: var(--participant-border-radius);
+    overflow: hidden;
+}
+
+.participant.tiled > .video-container {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    overflow: hidden;
+}
+
+/* one item */
+.elements_n1 > .tiled {
+    width: 90%;
+}
+
+/* two items */
+.elements_n2 > .tiled, /* 2 */
+.elements_n3 > .tiled, /* 2,1 */
+.elements_n4 > .tiled {  /* 2,2 */
+    width: 40%;
+}
+
+/* three items */
+.elements_n5 > .tiled, /* 3,2 */
+.elements_n6 > .tiled, /* 3,3 */
+.elements_n7 > .tiled, /* 3,3,1 */
+.elements_n8 > .tiled, /* 3,3,2 */
+.elements_n9 > .tiled {  /* 3,3,3 */
+    width: 25%;
+}
+
+.participant.fullscreen {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+}
+.participant.tiled.active {
+    border: var(--participant-border-width) solid var(--participant-border-color-active) !important;
+}
+
+.fullscreen-only > .participant.tiled {
+    opacity: 0;
+}
+
+.participant video {
+    /* stretch video element to full parent size, set video itself to contain while maintaining aspect ratio*/
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.participant.frame > h2 {
+    font-size: 18.11px;
+    text-transform: none;
+    color: #000;
+    position: absolute;
+    bottom: 0;
+}
+
+.participant.frame {
+    padding: 7.5px 7.5px 18px;
+    background: #dedede;
+}
+
+#videoparticipants {
+    padding: 1vh;
+    margin: 0;
+}

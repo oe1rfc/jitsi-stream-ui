@@ -1,0 +1,14 @@
+
+:root {
+    --pw21-darkgrey:    #1c234c;
+    --pw21-grey:        #677077;
+    --pw21-lightgrey:   #b5b5b7;
+    --pw21-darkblue:    #1d00bf;
+    --pw21-blue:        #00caf0;
+    --pw21-lightblue:   #89ecfe;
+    --pw21-yellow:      #ffd900;
+
+    --participant-background-color:     var(--pw21-darkgrey);
+    --participant-border-color:         var(--pw21-lightblue);
+    --participant-border-color-active:  var(--pw21-yellow);
+}
