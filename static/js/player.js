@@ -227,6 +227,7 @@ var JitsiUI = new Vue({
         display_options: {
             fullscreen: false,
             fullscreen_follow: true,
+            auto_add: false, // set new participants automatically visible/active
         },
         fullscreen_speaker: null,
         fullscreen_auto: false,
@@ -273,6 +274,12 @@ var JitsiUI = new Vue({
         participant_created: function(id, component) {
             console.warn('participant_created', id);
             this.$set(this.participants, id, component);
+            if ( this.display_options.auto_add == true) {
+                this.updateParticipantOptions(id, {
+                    visible: true,
+                    audio_muted: false,
+                });
+            }
         },
         participant_destroyed: function(id) {
             console.warn('participant_destroyed', id);

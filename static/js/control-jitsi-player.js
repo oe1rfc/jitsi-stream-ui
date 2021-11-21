@@ -141,6 +141,10 @@ Vue.component('jitsi-client', {
                     <input class="form-check-input" type="checkbox" v-model="jitsi.display_options.fullscreen_follow" onClick="return false;" v-on:click="updateDisplayOption('fullscreen_follow', !jitsi.display_options.fullscreen_follow)">
                     <label class="form-check-label">follow active speaker</label>
                 </div>
+                <div class="form-check form-check-inline form-switch">
+                    <input class="form-check-input" type="checkbox" v-model="jitsi.display_options.auto_add" onClick="return false;" v-on:click="updateDisplayOption('auto_add', !jitsi.display_options.auto_add)">
+                    <label class="form-check-label">add new participants</label>
+                </div>
             </div>
             <!-- Join Modal -->
             <div class="modal fade" :id="'joinModal'+jitsi.id" tabindex="-1" aria-labelledby="joinModalLabel" aria-hidden="true">
