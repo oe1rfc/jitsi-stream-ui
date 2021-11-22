@@ -22,7 +22,7 @@ body {
     flex-grow: initial;
     flex-basis: auto;
     padding: 0;
-    margin: 1vw;
+    margin: 0.5vw;
     height: auto;
     position: relative;
     background-color: var(--participant-background-color);
@@ -47,12 +47,14 @@ body {
 .elements_n2 > .tiled, /* 2 */
 .elements_n3 > .tiled, /* 2,1 */
 .elements_n4 > .tiled {  /* 2,2 */
-    width: 40%;
+    width: 45%;
 }
 
 /* three items */
 .elements_n5 > .tiled, /* 3,2 */
-.elements_n6 > .tiled, /* 3,3 */
+.elements_n6 > .tiled { /* 3,3 */
+    width: 30%;
+}
 .elements_n7 > .tiled, /* 3,3,1 */
 .elements_n8 > .tiled, /* 3,3,2 */
 .elements_n9 > .tiled {  /* 3,3,3 */
