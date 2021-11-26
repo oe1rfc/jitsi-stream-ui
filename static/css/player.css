@@ -97,8 +97,29 @@ body {
 }
 
 .participant.frame {
-    padding: 7.5px 7.5px 18px;
-    background: #dedede;
+    /* padding: 7.5px 7.5px 18px; */
+    background: rgba(20,20,20, 0.5);
+}
+
+.participant > .name {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.participant > .name > h2 {
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    font-size: 275%;
+    font-weight: 600;
+    color: #fff;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    top: 50%;
 }
 
 #videoparticipants {

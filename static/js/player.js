@@ -174,7 +174,7 @@ Vue.component('participant', {
             return this.participant._hidden;
         },
         ui_video_running: function() {
-            return this.muted.video != true;
+            return this.muted.video == false;
         },
         ui_dominant_speaker: function() {
             return this.dominant_speaker;
@@ -205,14 +205,16 @@ Vue.component('participant', {
         })
     },
   template: `
-        <div class="column participant" :id="id" v-show="ui_visible" v-bind:class="{ 'tiled': ui_visible && !ui_fullscreen, 'fullscreen': ui_fullscreen, 'active': ui_dominant_speaker, 'frame': ui_frame }">
+        <div class="column participant" :id="id" v-show="ui_visible" v-bind:class="{ 'tiled': ui_visible && !ui_fullscreen, 'fullscreen': ui_fullscreen, 'active': ui_dominant_speaker, 'frame': !ui_video_running }">
             <div class="video-container">
                 <template v-for="track in tracks">
                     <video v-if="track.getType() == 'video'" autoplay='1' :id="track.getTrackId()" v-show="ui_video_running" />
                     <audio v-if="track.getType() == 'audio'" autoplay='1' :id="track.getTrackId()" />
                 </template>
-            <div>
-            <h2 v-if="ui_frame" >{{ ui_display_name }}</h2>
+            </div>
+            <div v-show="! ui_video_running" class="name">
+                <h2>{{ ui_display_name }}</h2>
+            </div>
         </div>
   `
 });
