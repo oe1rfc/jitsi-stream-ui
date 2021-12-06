@@ -3,6 +3,6 @@
  */
 
 #videoparticipants {
-  background: url(chaos-studio-hamburg-background.jpg)
+  background: url("chaos-studio-hamburg-background.jpg");
   background-size: cover;
 }
