@@ -154,14 +154,11 @@
     </div>
     <div class="regie-container" v-bind:class="{ 'col-4': config.jitsi_multiview }">
         <div class="p-2">
-          <div class="custom-control custom-switch">
-            <span v-if="config.hide_player_link == false" v-on:click="copyPlayerLink" style="margin-right: 3rem">
-              copy player link
-              <i class="fa fa-link" title="copy Player link"></i>
-            </span>
-            <input type="checkbox" class="custom-control-input" id="enableControlSwitch" v-model="remote_control">
-            <label class="custom-control-label" for="enableControlSwitch">Enable Control</label>
+          <div class="form-check form-check-inline form-switch">
+              <input class="form-check-input" type="checkbox" id="enableControlSwitch" v-model="remote_control" />
+              <label class="form-check-label" for="enableControlSwitch">Enable Control</label>
           </div>
+          <playerlink v-if="config.hide_player_link == false" v-bind:control="control"><playerlink/>
         </div>
         <div class="p-2" v-show="remote_control == false">
           <div class="alert alert-info" role="alert">
@@ -178,6 +175,7 @@
   <script src="js/control-atem.js"></script>
   <script src="js/control-jitsi-player.js"></script>
   <script src="js/control-obs.js"></script>
+  <script src="js/control-playerlink.js"></script>
   <script src="js/control.js"></script>
 </body>
 </html>

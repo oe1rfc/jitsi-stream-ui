@@ -26,6 +26,7 @@ $(document).ready(function() {
         window.regie = new Vue({
             el: '#regie-container',
             data: {
+                control: parameters.control,
                 remote_control: false,
                 jitsi_participants: null,
                 config: streamui_config,
@@ -51,14 +52,6 @@ $(document).ready(function() {
                     alert("control not enabled.");
                     }
                 },
-                copyPlayerLink: function() {
-                  var url = location.origin + location.pathname + "player.html#control="+parameters.control;
-                  var el = $("<input>");
-                  $("body").append(el);
-                  el.val(url).select();
-                  document.execCommand("copy");
-                  el.remove();
-                }
             }
         })
 

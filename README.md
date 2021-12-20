@@ -17,6 +17,7 @@ clients:
 ## Jitsi Player
 
 ### URL parameters
+These can also be set with the `Player Link` menu in the control room.
 
 - required:
   - `control`: id/name of your control room, usually copied with the player link in the control room.
