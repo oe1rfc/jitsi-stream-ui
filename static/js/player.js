@@ -669,8 +669,8 @@ function startUp(streamui_config) {
         typeof window.config == 'undefined' ||
         typeof window.stream_socket != 'undefined') { return }
     console.warn("startUp", streamui_config);
-    // force jitsi bosh via https
-    window.config.bosh = window.config.bosh.replace(/^\/\//g, 'https://');
+    // force jitsi serviceUrl via https
+    window.config.serviceUrl = window.config.bosh.replace(/^\/\//g, 'https://');
     window.stream_socket = new StreamUI(JitsiUI, streamui_config);
 }
 
